@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#6C63FF"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="ScanVest"/>
+<title>ScanVest</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+:root{
+  --purple:#6C63FF;--purple-light:#2a2545;--purple-pale:#EEEDFE;
+  --green:#22c55e;--red:#ef4444;--amber:#f59e0b;
+  --bg:#0f0f1a;--card:#1a1a2e;--card2:#16162a;--border:#2a2a3e;
+  --text:#ffffff;--muted:#9999bb;--hint:#555577;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;user-select:none}
+#app{display:flex;flex-direction:column;height:100%;padding-top:var(--safe-top)}
+
+/* NAV */
+#tab-bar{display:flex;background:var(--card);border-top:0.5px solid var(--border);padding:8px 0 calc(8px + var(--safe-bot));flex-shrink:0}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--hint);font-size:10px;cursor:pointer;padding:4px 0;transition:color .15s}
+.tab-btn.active{color:var(--purple)}
+.tab-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* SCREENS */
+.screen{display:none;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.screen.active{display:flex;flex-direction:column}
+.screen-inner{padding:16px;display:flex;flex-direction:column;gap:12px;padding-bottom:20px}
+
+/* STATUS BAR */
+.status-row{display:flex;justify-content:space-between;align-items:center;padding:10px 16px 4px;flex-shrink:0}
+.status-row h1{font-size:20px;font-weight:600}
+.status-row .sub{font-size:13px;color:var(--muted)}
+
+/* CARDS */
+.card{background:var(--card);border-radius:16px;padding:14px}
+.card2{background:var(--card2);border-radius:12px;padding:10px 12px}
+.card-purple{background:var(--purple-light);border-radius:12px;padding:10px 12px}
+.card-green{background:#0d2010;border:0.5px solid #1a4020;border-radius:12px;padding:10px 12px}
+.card-gold{background:#1a1500;border:0.5px solid #854F0B;border-radius:12px;padding:10px 12px}
+
+/* TYPOGRAPHY */
+.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.big-num{font-size:32px;font-weight:700;letter-spacing:-1px}
+.med-num{font-size:18px;font-weight:600}
+.body{font-size:14px;line-height:1.6}
+.small{font-size:12px;color:var(--muted)}
+.tiny{font-size:11px;color:var(--hint)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.purple{color:var(--purple)}
+.amber{color:var(--amber)}
+
+/* PILLS & BADGES */
+.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;border:none;cursor:pointer;font-family:inherit}
+.pill-purple{background:var(--purple);color:#fff}
+.pill-green{background:#0d2010;color:var(--green)}
+.pill-gold{background:#1a1500;color:var(--amber)}
+.pill-muted{background:var(--purple-light);color:#AFA9EC}
+.pill-outline{background:none;border:0.5px solid var(--border);color:var(--muted)}
+
+/* BUTTONS */
+.btn{width:100%;padding:13px;border-radius:12px;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:opacity .15s}
+.btn:active{opacity:.8}
+.btn-primary{background:var(--purple);color:#fff}
+.btn-secondary{background:var(--card2);color:var(--text)}
+
+/* ROWS */
+.row{display:flex;justify-content:space-between;align-items:center}
+.row2{display:flex;align-items:center;gap:10px}
+.divider{height:0.5px;background:var(--border)}
+
+/* AVATAR */
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#AFA9EC;flex-shrink:0}
+
+/* SPARKLINE */
+.sparkline{display:block}
+
+/* PROGRESS BAR */
+.prog-bg{background:var(--border);border-radius:4px;height:5px}
+.prog-fill{background:var(--purple);border-radius:4px;height:5px;transition:width .3s}
+.prog-fill-green{background:var(--green);border-radius:4px;height:5px}
+
+/* STOCK ICON */
+.stock-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* REWARD POPUP */
+#reward-popup{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+#reward-popup.show{display:flex}
+.reward-box{background:var(--card);border-radius:24px;padding:32px 24px;text-align:center;width:100%;max-width:320px}
+.reward-amount{font-size:48px;font-weight:700;color:var(--green);margin:12px 0}
+
+/* CAMERA */
+#camera-container{position:relative;background:#111;border-radius:16px;overflow:hidden;aspect-ratio:4/3;width:100%}
+#camera-video{width:100%;height:100%;object-fit:cover}
+#camera-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.scan-corners{position:absolute;inset:20px}
+.corner-tl{position:absolute;top:0;left:0;width:24px;height:24px;border-top:2px solid var(--purple);border-left:2px solid var(--purple);border-radius:4px 0 0 0}
+.corner-tr{position:absolute;top:0;right:0;width:24px;height:24px;border-top:2px solid var(--purple);border-right:2px solid var(--purple);border-radius:0 4px 0 0}
+.corner-bl{position:absolute;bottom:0;left:0;width:24px;height:24px;border-bottom:2px solid var(--purple);border-left:2px solid var(--purple);border-radius:0 0 0 4px}
+.corner-br{position:absolute;bottom:0;right:0;width:24px;height:24px;border-bottom:2px solid var(--purple);border-right:2px solid var(--purple);border-radius:0 0 4px 0}
+.scan-line{position:absolute;left:20px;right:20px;height:2px;background:var(--purple);animation:scanline 2s ease-in-out infinite}
+@keyframes scanline{0%{top:20px;opacity:1}50%{top:calc(100% - 20px);opacity:.5}100%{top:20px;opacity:1}}
+.scan-placeholder{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--hint)}
+.scan-placeholder svg{width:40px;height:40px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* CHART */
+#portfolio-chart{width:100%;height:80px}
+
+/* ONBOARDING */
+#onboarding{position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;flex-direction:column;padding:40px 24px 32px;overflow-y:auto}
+#onboarding.hidden{display:none}
+.ob-step{display:none;flex-direction:column;gap:20px;flex:1}
+.ob-step.active{display:flex}
+.ob-emoji{font-size:56px;text-align:center;margin-bottom:8px}
+.ob-title{font-size:28px;font-weight:700;text-align:center;line-height:1.3}
+.ob-body{font-size:16px;color:var(--muted);text-align:center;line-height:1.6}
+.ob-spacer{flex:1}
+input[type=text]{width:100%;background:var(--card2);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-size:16px;font-family:inherit;outline:none}
+input[type=text]:focus{border-color:var(--purple)}
+
+/* DETAIL MODAL */
+#stock-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:flex-end;padding-bottom:var(--safe-bot)}
+#stock-modal.show{display:flex}
+.modal-sheet{background:var(--card);border-radius:24px 24px 0 0;width:100%;padding:20px 20px calc(20px + var(--safe-bot));max-height:90vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+input[type=number]{width:100%;background:var(--card2);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;color:var(--text);font-size:20px;font-weight:600;font-family:inherit;outline:none;margin:8px 0}
+input[type=number]:focus{border-color:var(--purple)}
+
+/* FILTER PILLS ROW */
+.filter-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div id="onboarding">
+  <div class="ob-step active" id="ob0">
+    <div class="ob-emoji">📱</div>
+    <div class="ob-title">Welcome to ScanVest</div>
+    <div class="ob-body">Scan your stuff. Turn it into virtual investing capital. Learn the market for real — without risking a dollar.</div>
+    <div class="ob-spacer"></div>
+    <button class="btn btn-primary" onclick="obNext()">let's go →</button>
+  </div>
+  <div class="ob-step" id="ob1">
+    <div class="ob-emoji">🎯</div>
+    <div class="ob-title">How it works</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card2 row2"><span style="font-size:24px">📷</span><div><div style="font-weight:600">scan your items</div><div class="small">AI values your sneakers, headphones, laptop — anything</div></div></div>
+      <div class="card2 row2"><span style="font-size:24px">💰</span><div><div style="font-weight:600">get virtual capital</div><div class="small">That value becomes money to invest with</div></div></div>
+      <div class="card2 row2"><span style="font-size:24px">📈</span><div><div style="font-weight:600">invest in real stocks</div><div class="small">Real prices, real market, zero real risk</div></div></div>
+      <div class="card2 row2"><span style="font-size:24px">🎓</span><div><div style="font-weight:600">earn cash rewards</div><div class="small">Complete lessons and challenges for more capital</div></div></div>
+    </div>
+    <div class="ob-spacer"></div>
+    <button class="btn btn-primary" onclick="obNext()">sounds good →</button>
+  </div>
+  <div class="ob-step" id="ob2">
+    <div class="ob-emoji">👋</div>
+    <div class="ob-title">What's your name?</div>
+    <div class="ob-body">We'll use this to personalize your experience.</div>
+    <input type="text" id="ob-name" placeholder="your first name" maxlength="20" autocomplete="off"/>
+    <input type="text" id="ob-school" placeholder="your school (optional)" maxlength="40" autocomplete="off"/>
+    <div class="ob-spacer"></div>
+    <button class="btn btn-primary" onclick="obFinish()">start investing →</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div id="screens" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+
+    <!-- HOME -->
+    <div class="screen active" id="screen-home">
+      <div class="status-row">
+        <div>
+          <div class="small" id="home-greeting">hey there 👋</div>
+          <h1>portfolio</h1>
+        </div>
+        <div style="text-align:right">
+          <div class="pill pill-green" id="home-rewards-pill">$0.00 earned</div>
+        </div>
+      </div>
+      <div class="screen-inner">
+        <div class="card">
+          <div class="label">total value</div>
+          <div class="big-num" id="home-total">$0.00</div>
+          <div class="row2" style="margin-top:4px">
+            <span class="green" style="font-size:13px" id="home-change">+$0.00 today</span>
+            <span class="pill pill-muted" id="home-pct">0.0%</span>
+          </div>
+          <canvas id="portfolio-chart"></canvas>
+          <button class="btn btn-primary" style="margin-top:12px" onclick="navTo('scan')">
+            <span>📷 scan to add funds</span>
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="card2">
+            <div class="label">cash</div>
+            <div class="med-num" id="home-cash">$0.00</div>
+          </div>
+          <div class="card2">
+            <div class="label">rewards</div>
+            <div class="med-num green" id="home-rewards">$0.00</div>
+          </div>
+        </div>
+        <div id="holdings-section">
+          <div class="label" style="margin-bottom:8px">holdings</div>
+          <div id="holdings-list"></div>
+          <div id="holdings-empty" style="display:none">
+            <div class="card2" style="text-align:center;padding:20px">
+              <div style="font-size:24px;margin-bottom:8px">📊</div>
+              <div style="color:var(--muted);font-size:14px">no holdings yet — scan something and start investing</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCAN -->
+    <div class="screen" id="screen-scan">
+      <div class="status-row">
+        <div><h1>scan items</h1><div class="small">AI identifies & values your stuff</div></div>
+        <div class="pill pill-green">+$5 first scan</div>
+      </div>
+      <div class="screen-inner">
+        <div id="camera-container">
+          <video id="camera-video" autoplay playsinline muted></video>
+          <div id="camera-overlay">
+            <div class="scan-corners">
+              <div class="corner-tl"></div>
+              <div class="corner-tr"></div>
+              <div class="corner-bl"></div>
+              <div class="corner-br"></div>
+            </div>
+            <div class="scan-line" id="scan-line" style="display:none"></div>
+            <div class="scan-placeholder" id="scan-placeholder">
+              <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M8 2v4M16 2v4M2 8h4M18 8h4M2 16h4M18 16h4M8 22v-4M16 22v-4"/></svg>
+              <span style="font-size:13px">tap below to start scanning</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px">
+          <button class="btn btn-primary" id="scan-btn" onclick="startScan()">📷 scan item</button>
+          <button class="btn btn-secondary" style="width:auto;padding:13px 16px" onclick="uploadPhoto()">🖼️</button>
+        </div>
+        <input type="file" id="photo-upload" accept="image/*" style="display:none" onchange="handleUpload(event)"/>
+        <div id="scan-results" style="display:none">
+          <div class="label" style="margin-bottom:8px">detected items</div>
+          <div id="scan-items-list"></div>
+          <div class="card" style="margin-top:4px">
+            <div class="row"><span class="small">capital unlocked</span><span class="purple" style="font-size:16px;font-weight:600" id="scan-total">$0</span></div>
+            <div class="row" id="scan-bonus-row" style="margin-top:6px;display:none"><span class="small">first scan bonus</span><span class="green" style="font-size:14px;font-weight:600">+$5.00</span></div>
+            <button class="btn btn-primary" style="margin-top:12px" onclick="addScanToPortfolio()">add to portfolio</button>
+          </div>
+        </div>
+        <div class="card-purple">
+          <div style="font-size:12px;font-weight:600;color:#AFA9EC;margin-bottom:4px">💡 pro tip</div>
+          <div style="font-size:13px;color:#CECBF6;line-height:1.5">Scan sneakers, electronics, gaming gear, textbooks, instruments — anything you own. The AI checks real resale prices from StockX, eBay, and more.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKET -->
+    <div class="screen" id="screen-market">
+      <div class="status-row">
+        <div><h1>market</h1><div class="small" id="market-time">live prices</div></div>
+        <button class="pill pill-muted" onclick="refreshMarket()">↻ refresh</button>
+      </div>
+      <div class="screen-inner">
+        <div style="background:var(--card2);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px">
+          <svg width="16" height="16" stroke="var(--hint)" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="search-input" placeholder="search stocks…" style="background:none;border:none;color:var(--text);font-size:14px;flex:1;outline:none;padding:0" oninput="filterStocks(this.value)"/>
+        </div>
+        <div class="filter-row" id="market-filters">
+          <button class="pill pill-purple" onclick="setFilter('all',this)">all</button>
+          <button class="pill pill-outline" onclick="setFilter('tech',this)">tech</button>
+          <button class="pill pill-outline" onclick="setFilter('etf',this)">etf</button>
+          <button class="pill pill-outline" onclick="setFilter('consumer',this)">consumer</button>
+          <button class="pill pill-outline" onclick="setFilter('ev',this)">EV</button>
+        </div>
+        <div id="stocks-list"></div>
+        <div class="card-purple">
+          <div style="font-size:12px;font-weight:600;color:#AFA9EC;margin-bottom:6px">🤖 AI market insight</div>
+          <div style="font-size:13px;color:#CECBF6;line-height:1.6" id="ai-insight">Markets are open. Check your holdings and look for opportunities.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEARN -->
+    <div class="screen" id="screen-learn">
+      <div class="status-row">
+        <div><h1>learn</h1><div class="small">earn cash by learning</div></div>
+        <div class="pill pill-gold" id="streak-pill">🔥 0 days</div>
+      </div>
+      <div class="screen-inner">
+        <div class="card-gold">
+          <div class="row">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--amber)">daily streak bonus</div>
+              <div class="tiny" style="color:#854F0B;margin-top:2px">log in 7 days → earn $3.00</div>
+            </div>
+            <div style="text-align:right">
+              <div class="green" style="font-size:18px;font-weight:700">+$3.00</div>
+            </div>
+          </div>
+          <div class="prog-bg" style="margin-top:8px"><div class="prog-fill-green" id="streak-bar" style="width:0%"></div></div>
+          <div class="tiny" style="margin-top:4px" id="streak-label">0 of 7 days</div>
+        </div>
+        <div class="label" style="margin-bottom:4px">lessons · earn $0.50 each</div>
+        <div id="lessons-list"></div>
+        <div class="label" style="margin-bottom:4px;margin-top:4px">quizzes · earn $1.00 each</div>
+        <div id="quizzes-list"></div>
+        <div class="label" style="margin-bottom:4px;margin-top:4px">AI coach</div>
+        <div class="card-purple">
+          <div style="font-size:12px;font-weight:600;color:#AFA9EC;margin-bottom:6px">🤖 today's explanation</div>
+          <div style="font-size:13px;color:#CECBF6;line-height:1.6" id="coach-text">Your portfolio moved today because of market activity. Tap a holding on the home screen to learn more about why it moved.</div>
+          <button class="btn btn-secondary" style="margin-top:10px;font-size:13px;padding:10px" onclick="askCoach()">ask the coach a question ↗</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOCIAL -->
+    <div class="screen" id="screen-social">
+      <div class="status-row">
+        <div><h1>compete</h1><div class="small">this week's leaderboard</div></div>
+      </div>
+      <div class="screen-inner">
+        <div class="filter-row">
+          <button class="pill pill-purple" onclick="setLBFilter('friends',this)">friends</button>
+          <button class="pill pill-outline" onclick="setLBFilter('school',this)">school</button>
+          <button class="pill pill-outline" onclick="setLBFilter('global',this)">global</button>
+        </div>
+        <div id="leaderboard-list"></div>
+        <div class="label" style="margin-bottom:8px">challenges</div>
+        <div id="challenges-list"></div>
+        <div class="card2" style="text-align:center;padding:16px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">invite friends</div>
+          <div class="small" style="margin-bottom:12px">they join → you both get +$5.00</div>
+          <button class="btn btn-primary" onclick="share()">share ScanVest</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="screen-profile">
+      <div class="status-row">
+        <div><h1>profile</h1></div>
+        <button class="pill pill-outline" style="font-size:12px" onclick="resetApp()">reset</button>
+      </div>
+      <div class="screen-inner">
+        <div class="card" style="text-align:center;padding:24px 20px">
+          <div class="avatar" style="width:60px;height:60px;font-size:22px;margin:0 auto 10px" id="profile-avatar">?</div>
+          <div style="font-size:18px;font-weight:700" id="profile-name">Your Name</div>
+          <div class="small" id="profile-school">investor</div>
+          <div style="display:flex;justify-content:center;gap:8px;margin-top:10px">
+            <div class="pill pill-green" id="profile-rewards-pill">$0 earned</div>
+            <div class="pill pill-gold" id="profile-streak-pill">0-day streak</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="card2" style="text-align:center"><div class="label">scanned value</div><div class="med-num" id="stat-scanned">$0</div></div>
+          <div class="card2" style="text-align:center"><div class="label">cash rewards</div><div class="med-num green" id="stat-rewards">$0</div></div>
+          <div class="card2" style="text-align:center"><div class="label">portfolio</div><div class="med-num" id="stat-portfolio">$0</div></div>
+          <div class="card2" style="text-align:center"><div class="label">lessons done</div><div class="med-num" id="stat-lessons">0</div></div>
+        </div>
+        <div class="label" style="margin-bottom:8px">reward history</div>
+        <div id="reward-history"></div>
+        <div class="card-green" id="graduation-card">
+          <div class="row2" style="margin-bottom:8px">
+            <span style="font-size:20px">🚀</span>
+            <div>
+              <div style="font-size:14px;font-weight:600">ready for real investing?</div>
+              <div class="small">stay positive for 90 days → unlock $10 real money</div>
+            </div>
+          </div>
+          <div class="prog-bg"><div class="prog-fill-green" id="grad-bar" style="width:0%"></div></div>
+          <div class="tiny" style="margin-top:4px" id="grad-label">day 0 of 90</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB BAR -->
+  <div id="tab-bar">
+    <button class="tab-btn active" onclick="navTo('home')" id="tab-home">
+      <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      home
+    </button>
+    <button class="tab-btn" onclick="navTo('scan')" id="tab-scan">
+      <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="3"/><path d="M8 2v4M16 2v4M2 8h4M18 8h4M2 16h4M18 16h4M8 22v-4M16 22v-4"/></svg>
+      scan
+    </button>
+    <button class="tab-btn" onclick="navTo('market')" id="tab-market">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      market
+    </button>
+    <button class="tab-btn" onclick="navTo('learn')" id="tab-learn">
+      <svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      learn
+    </button>
+    <button class="tab-btn" onclick="navTo('social')" id="tab-social">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      social
+    </button>
+  </div>
+</div>
+
+<!-- STOCK DETAIL MODAL -->
+<div id="stock-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="row2" style="margin-bottom:16px">
+      <div class="stock-icon" id="modal-icon"></div>
+      <div>
+        <div style="font-size:18px;font-weight:700" id="modal-ticker"></div>
+        <div class="small" id="modal-name"></div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-size:20px;font-weight:700" id="modal-price"></div>
+        <div id="modal-change" style="font-size:13px"></div>
+      </div>
+    </div>
+    <canvas id="modal-chart" style="width:100%;height:80px;margin-bottom:16px"></canvas>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="card2"><div class="label">your shares</div><div style="font-weight:600" id="modal-shares">0</div></div>
+      <div class="card2"><div class="label">position value</div><div style="font-weight:600" id="modal-value">$0.00</div></div>
+    </div>
+    <div class="label" style="margin-bottom:6px">shares to trade</div>
+    <input type="number" id="trade-shares" placeholder="0.0" min="0" step="0.01" oninput="updateTradeTotal()"/>
+    <div class="row" style="margin-bottom:12px">
+      <span class="small">total</span>
+      <span style="font-weight:600;font-size:16px" id="trade-total">$0.00</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn" style="background:#0d2010;color:var(--green)" onclick="executeTrade('buy')">buy</button>
+      <button class="btn" style="background:#1a0a0a;color:var(--red)" onclick="executeTrade('sell')">sell</button>
+    </div>
+    <button class="btn btn-secondary" style="margin-top:10px" onclick="closeModal()">close</button>
+  </div>
+</div>
+
+<!-- LESSON MODAL -->
+<div id="lesson-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:600;display:none;align-items:flex-end;padding-bottom:var(--safe-bot)">
+  <div class="modal-sheet" style="max-height:85vh">
+    <div class="modal-handle"></div>
+    <div id="lesson-content"></div>
+  </div>
+</div>
+
+<!-- REWARD POPUP -->
+<div id="reward-popup">
+  <div class="reward-box">
+    <div style="font-size:36px">🎉</div>
+    <div style="font-size:18px;font-weight:600;margin-top:8px" id="reward-title">reward earned!</div>
+    <div class="reward-amount" id="reward-amount">+$0.00</div>
+    <div class="small" id="reward-desc" style="margin-bottom:20px">added to your portfolio</div>
+    <button class="btn btn-primary" onclick="closeReward()">add to portfolio</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const S = {
+  profile: null,
+  balance: 0,
+  scannedValue: 0,
+  holdings: [],
+  transactions: [],
+  rewards: [],
+  scannedItems: [],
+  streak: 0,
+  lastLogin: null,
+  lessonsCompleted: [],
+  quizzesCompleted: [],
+  days: 0,
+  firstScanDone: false
+};
+
+function save() { try { localStorage.setItem('sv', JSON.stringify(S)); } catch(e){} }
+function load() {
+  try {
+    const d = localStorage.getItem('sv');
+    if (d) Object.assign(S, JSON.parse(d));
+  } catch(e) {}
+}
+
+// ─── STOCKS DATA ──────────────────────────────────────────────────────────────
+const STOCKS = [
+  {t:'AAPL',n:'Apple Inc.',p:213.40,c:2.1,cat:'tech',color:'#2a2545',tc:'#AFA9EC',hist:[195,198,201,199,203,207,204,208,210,212,209,211,213,215,212,214,216,213,211,213,215,213,212,214,216,213,214,212,213,213]},
+  {t:'NVDA',n:'Nvidia Corp.',p:131.80,c:4.7,cat:'tech',color:'#1a2510',tc:'#97C459',hist:[90,93,96,94,98,102,105,108,107,110,112,115,113,116,118,115,120,122,124,122,125,127,125,127,129,128,130,128,129,132]},
+  {t:'MSFT',n:'Microsoft Corp.',p:441.20,c:0.9,cat:'tech',color:'#0d1a2a',tc:'#85B7EB',hist:[400,403,406,404,408,412,410,414,416,418,415,419,421,418,422,425,422,426,428,426,429,432,430,433,435,433,436,438,440,441]},
+  {t:'GOOGL',n:'Alphabet Inc.',p:178.90,c:0.8,cat:'tech',color:'#1a1520',tc:'#CECBF6',hist:[160,162,165,163,167,170,168,172,174,176,173,177,178,176,179,181,178,182,183,181,183,185,183,185,179,178,179,180,179,179]},
+  {t:'AMZN',n:'Amazon.com',p:198.50,c:1.1,cat:'tech',color:'#1a1500',tc:'#FAC775',hist:[175,177,180,178,182,185,183,186,188,190,187,191,193,190,194,196,193,197,198,196,199,197,196,198,199,198,197,199,200,199]},
+  {t:'TSLA',n:'Tesla, Inc.',p:178.20,c:-1.4,cat:'ev',color:'#2a1a1a',tc:'#F09595',hist:[195,191,188,190,185,182,184,179,181,183,180,178,176,179,181,179,177,175,178,180,178,176,175,177,179,178,177,179,180,178]},
+  {t:'NKE',n:'Nike, Inc.',p:74.30,c:-1.1,cat:'consumer',color:'#2a1a10',tc:'#F0997B',hist:[82,81,79,80,78,76,77,75,74,76,75,74,75,73,74,75,74,73,74,75,74,73,74,75,74,73,75,74,75,74]},
+  {t:'SBUX',n:'Starbucks Corp.',p:82.10,c:0.4,cat:'consumer',color:'#0d2010',tc:'#5DCAA5',hist:[76,77,79,78,80,81,79,82,80,81,82,80,81,83,82,81,82,83,81,82,83,82,81,82,83,82,81,82,82,82]},
+  {t:'SPY',n:'S&P 500 ETF',p:522.10,c:0.5,cat:'etf',color:'#0d1a2a',tc:'#85B7EB',hist:[490,492,495,493,497,500,498,502,504,506,503,507,509,507,511,514,511,515,516,514,517,519,517,519,521,520,519,521,522,522]},
+  {t:'QQQ',n:'Nasdaq 100 ETF',p:448.30,c:0.7,cat:'etf',color:'#1a0d2a',tc:'#AFA9EC',hist:[420,422,425,423,427,430,428,432,434,436,433,437,439,437,441,444,441,445,446,444,447,449,447,449,445,444,445,447,448,448]},
+];
+
+const LESSONS = [
+  {id:'l1',title:'what is the stock market?',body:'The stock market is a place where people buy and sell small pieces (called shares) of companies. When a company like Apple does well, the value of its shares goes up — and so does your investment.\n\nThink of it like buying a small slice of a pizza shop. If the shop gets popular and makes more money, your slice is worth more.\n\n📈 Key point: Prices go up when more people want to buy, and down when more people want to sell.',dur:'5 min',reward:0.5},
+  {id:'l2',title:'what is a P/E ratio?',body:"The Price-to-Earnings (P/E) ratio tells you how expensive a stock is compared to how much money the company earns.\n\nFormula: P/E = Stock Price ÷ Earnings Per Share\n\nExample: If a stock costs $100 and the company earns $5 per share, the P/E is 20. That means you're paying $20 for every $1 of earnings.\n\n💡 High P/E = investors expect big growth. Low P/E = might be undervalued (or struggling).",dur:'6 min',reward:0.5},
+  {id:'l3',title:'dollar cost averaging',body:"Dollar cost averaging (DCA) means investing a fixed amount regularly — like $50 every month — regardless of the price.\n\nWhy it works:\n• When prices are high, you buy fewer shares\n• When prices are low, you buy more shares\n• Over time, your average cost is lower than if you tried to time the market\n\n🎯 This is how most millionaires actually build wealth — boring, consistent, automatic.",dur:'7 min',reward:0.5},
+  {id:'l4',title:'what is diversification?',body:"Don't put all your eggs in one basket. Diversification means spreading your money across different stocks, industries, and asset types.\n\nExample: If you only own Tesla and it drops 30%, your whole portfolio drops. But if you own Tesla, Apple, an S&P ETF, and a bank stock, Tesla's drop only hurts part of your money.\n\n🛡️ ETFs like SPY are instant diversification — one purchase gives you exposure to 500 companies.",dur:'5 min',reward:0.5},
+  {id:'l5',title:'reading the market news',body:"Stock prices move on news. Learning to connect events to price changes is a superpower.\n\n📰 Types of news that move markets:\n• Earnings reports (company profits)\n• Federal Reserve interest rate decisions\n• Economic data (jobs report, inflation)\n• Product launches or recalls\n• CEO changes\n\n🧠 Practice: Every time one of your stocks moves, look up why. After 30 days you'll start predicting moves before they happen.",dur:'8 min',reward:0.5},
+];
+
+const QUIZZES = [
+  {id:'q1',title:'market basics quiz',questions:[
+    {q:'What does it mean to "buy a share" of a company?',opts:['Lend money to the company','Own a small piece of the company','Become an employee','Get a discount on products'],a:1},
+    {q:'If more people want to buy a stock than sell it, what happens to the price?',opts:['It goes down','It stays the same','It goes up','It disappears'],a:2},
+    {q:'What is the S&P 500?',opts:['A racing car','An index of 500 large US companies','A cryptocurrency','A type of bank account'],a:1},
+    {q:'What does "portfolio" mean in investing?',opts:['A leather briefcase','A type of stock','Your collection of investments','A financial advisor'],a:2},
+    {q:'Which of these is safer?',opts:['Putting all money in one stock','Spreading money across many stocks','Keeping money under your mattress','Investing only in crypto'],a:1},
+  ],reward:1.0},
+  {id:'q2',title:'reading stocks quiz',questions:[
+    {q:'A stock goes from $100 to $110. What is the percentage change?',opts:['5%','10%','110%','1%'],a:1},
+    {q:'What does a negative percentage change mean?',opts:['The company closed','The stock price fell','The stock split','The market is closed'],a:1},
+    {q:'What is a stock ticker?',opts:['A countdown clock','A short symbol for a company like AAPL','A news article','A type of dividend'],a:1},
+    {q:'If you buy 2 shares at $50 each and the price goes to $60, what is your profit?',opts:['$10','$20','$60','$5'],a:1},
+    {q:'What does "market cap" mean?',opts:['The CEO\'s salary','Total value of all company shares','Daily trading volume','The stock\'s highest price ever'],a:1},
+  ],reward:1.0},
+];
+
+const AI_INSIGHTS = [
+  'NVDA is up on strong AI chip demand from major cloud providers. Tech stocks often move together on AI news.',
+  'The Fed kept rates steady today — good news for growth stocks like tech. Lower rates = cheaper borrowing = more investment.',
+  'NKE dipped after Adidas reported strong sales. Competition news often moves both companies at once.',
+  'SPY is up slightly — broad market gains often mean the economy is doing well. ETFs smooth out individual stock volatility.',
+  'TSLA fell on delivery number concerns. Investor expectations vs. reality is the core driver of short-term stock moves.',
+  'AAPL gained after analyst upgrades. When Wall Street raises price targets, it signals confidence in future earnings.',
+];
+
+// ─── ONBOARDING ───────────────────────────────────────────────────────────────
+let obStep = 0;
+function obNext() {
+  document.getElementById('ob'+obStep).classList.remove('active');
+  obStep++;
+  document.getElementById('ob'+obStep).classList.add('active');
+}
+function obFinish() {
+  const name = document.getElementById('ob-name').value.trim() || 'Investor';
+  const school = document.getElementById('ob-school').value.trim();
+  S.profile = { name, school };
+  S.balance = 0;
+  S.days = 1;
+  S.lastLogin = new Date().toDateString();
+  save();
+  document.getElementById('onboarding').classList.add('hidden');
+  renderAll();
+  showToast('welcome to ScanVest, ' + name + '! 🎉');
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function navTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  document.getElementById('tab-'+screen).classList.add('active');
+  if (screen === 'home') renderHome();
+  if (screen === 'market') renderMarket();
+  if (screen === 'learn') renderLearn();
+  if (screen === 'social') renderSocial();
+  if (screen === 'profile') renderProfile();
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ─── REWARD POPUP ─────────────────────────────────────────────────────────────
+let pendingReward = 0;
+function showReward(title, amount, desc) {
+  pendingReward = amount;
+  document.getElementById('reward-title').textContent = title;
+  document.getElementById('reward-amount').textContent = '+$'+amount.toFixed(2);
+  document.getElementById('reward-desc').textContent = desc;
+  document.getElementById('reward-popup').classList.add('show');
+}
+function closeReward() {
+  S.balance += pendingReward;
+  S.rewards.push({ amount: pendingReward, desc: document.getElementById('reward-desc').textContent, date: new Date().toISOString() });
+  document.getElementById('reward-popup').classList.remove('show');
+  save();
+  renderHome();
+  showToast('+$'+pendingReward.toFixed(2)+' added to portfolio 💰');
+}
+
+// ─── HOME ─────────────────────────────────────────────────────────────────────
+function portfolioValue() {
+  return S.holdings.reduce((sum, h) => {
+    const stock = STOCKS.find(s => s.t === h.ticker);
+    return sum + (stock ? stock.p * h.shares : h.value);
+  }, 0);
+}
+function totalValue() { return S.balance + portfolioValue(); }
+function totalRewards() { return S.rewards.reduce((s,r) => s+r.amount, 0); }
+
+function renderHome() {
+  if (!S.profile) return;
+  const name = S.profile.name;
+  document.getElementById('home-greeting').textContent = 'hey, '+name+' 👋';
+  const tv = totalValue();
+  const tr = totalRewards();
+  document.getElementById('home-total').textContent = '$'+tv.toFixed(2);
+  document.getElementById('home-rewards-pill').textContent = '$'+tr.toFixed(2)+' earned';
+  document.getElementById('home-cash').textContent = '$'+S.balance.toFixed(2);
+  document.getElementById('home-rewards').textContent = '$'+tr.toFixed(2);
+  const change = S.holdings.reduce((sum, h) => {
+    const stock = STOCKS.find(s => s.t === h.ticker);
+    if (!stock) return sum;
+    return sum + (stock.p * h.shares * stock.c / 100);
+  }, 0);
+  const el = document.getElementById('home-change');
+  el.textContent = (change >= 0 ? '+' : '') + '$'+change.toFixed(2)+' today';
+  el.className = change >= 0 ? 'green' : 'red';
+  const pct = tv > 0 ? (change / tv * 100) : 0;
+  document.getElementById('home-pct').textContent = (pct>=0?'+':'')+pct.toFixed(1)+'%';
+  drawChart('portfolio-chart', [800,820,810,850,890,870,920,960,940,980,tv], '#6C63FF');
+  const list = document.getElementById('holdings-list');
+  const empty = document.getElementById('holdings-empty');
+  if (S.holdings.length === 0) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = S.holdings.map(h => {
+    const stock = STOCKS.find(s => s.t === h.ticker);
+    if (!stock) return '';
+    const val = stock.p * h.shares;
+    const chg = stock.c;
+    return `<div class="card2" style="margin-bottom:8px;cursor:pointer" onclick="openStockModal('${stock.t}')">
+      <div class="row">
+        <div class="row2">
+          <div class="stock-icon" style="background:${stock.color};color:${stock.tc}">${stock.t[0]}</div>
+          <div><div style="font-weight:600;font-size:14px">${stock.t}</div><div class="small">${h.shares.toFixed(2)} shares</div></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:600">$${val.toFixed(2)}</div>
+          <div class="${chg>=0?'green':'red'}" style="font-size:12px">${chg>=0?'+':''}${chg.toFixed(1)}%</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── MINI CHART ───────────────────────────────────────────────────────────────
+function drawChart(canvasId, data, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width || canvas.offsetWidth || 300;
+  const h = canvas.height || 80;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w+'px';
+  canvas.style.height = h+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0,0,w,h);
+  const min = Math.min(...data), max = Math.max(...data), range = max-min||1;
+  const pts = data.map((v,i) => [i/(data.length-1)*w, h - ((v-min)/range)*(h-10)-5]);
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  pts.forEach(([x,y],i) => i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
+  ctx.stroke();
+  // fill
+  ctx.beginPath();
+  pts.forEach(([x,y],i) => i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y));
+  ctx.lineTo(w, h); ctx.lineTo(0,h); ctx.closePath();
+  ctx.fillStyle = color+'22';
+  ctx.fill();
+}
+
+// ─── SCAN ─────────────────────────────────────────────────────────────────────
+let cameraStream = null;
+let scanActive = false;
+let currentScanItems = [];
+
+const MOCK_ITEMS = [
+  [{name:'Nike Air Force 1',condition:'good condition',value:112,src:'StockX avg'},{name:'Sony WH-1000XM4',condition:'very good',value:185,src:'eBay sold'}],
+  [{name:'MacBook Air M1',condition:'good condition',value:640,src:'eBay sold'}],
+  [{name:'AirPods Pro 2nd gen',condition:'like new',value:145,src:'StockX avg'},{name:'Calculus textbook',condition:'used',value:28,src:'Amazon used'}],
+  [{name:'PlayStation 5',condition:'good',value:320,src:'Facebook Marketplace'},{name:'Gaming headset',condition:'good',value:65,src:'eBay avg'}],
+  [{name:'Adidas Yeezy 350',condition:'worn twice',value:210,src:'StockX avg'}],
+  [{name:'iPad Pro 11"',condition:'very good',value:480,src:'Swappa avg'},{name:'Apple Pencil',condition:'good',value:72,src:'eBay sold'}],
+];
+
+async function startScan() {
+  const btn = document.getElementById('scan-btn');
+  const placeholder = document.getElementById('scan-placeholder');
+  const scanLine = document.getElementById('scan-line');
+  try {
+    if (!cameraStream) {
+      cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+      document.getElementById('camera-video').srcObject = cameraStream;
+    }
+    placeholder.style.display = 'none';
+    scanLine.style.display = 'block';
+    btn.disabled = true;
+    btn.textContent = '🔍 scanning…';
+    scanActive = true;
+    setTimeout(completeScan, 2500);
+  } catch(e) {
+    // Camera not available — use mock directly
+    placeholder.style.display = 'none';
+    scanLine.style.display = 'block';
+    btn.disabled = true;
+    btn.textContent = '🔍 scanning…';
+    setTimeout(completeScan, 2000);
+  }
+}
+
+function completeScan() {
+  document.getElementById('scan-line').style.display = 'none';
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = false;
+  btn.textContent = '📷 scan another';
+  currentScanItems = MOCK_ITEMS[Math.floor(Math.random()*MOCK_ITEMS.length)];
+  renderScanResults();
+}
+
+function uploadPhoto() { document.getElementById('photo-upload').click(); }
+function handleUpload(e) {
+  if (!e.target.files[0]) return;
+  document.getElementById('scan-placeholder').style.display = 'none';
+  document.getElementById('scan-line').style.display = 'block';
+  document.getElementById('scan-btn').disabled = true;
+  document.getElementById('scan-btn').textContent = '🔍 analyzing…';
+  setTimeout(completeScan, 1800);
+}
+
+function renderScanResults() {
+  const list = document.getElementById('scan-items-list');
+  list.innerHTML = currentScanItems.map(item => `
+    <div class="card2" style="margin-bottom:8px">
+      <div class="row">
+        <div><div style="font-weight:600;font-size:14px">${item.name}</div><div class="small">${item.src} · ${item.condition}</div></div>
+        <div class="green" style="font-weight:600;font-size:15px">$${item.value}</div>
+      </div>
+    </div>`).join('');
+  const total = currentScanItems.reduce((s,i) => s+i.value, 0);
+  document.getElementById('scan-total').textContent = '$'+total;
+  const isFirst = !S.firstScanDone;
+  document.getElementById('scan-bonus-row').style.display = isFirst ? 'flex' : 'none';
+  document.getElementById('scan-results').style.display = 'block';
+}
+
+function addScanToPortfolio() {
+  const total = currentScanItems.reduce((s,i) => s+i.value, 0);
+  const isFirst = !S.firstScanDone;
+  const bonus = isFirst ? 5 : 0;
+  S.scannedValue += total;
+  S.balance += total;
+  S.scannedItems.push(...currentScanItems);
+  if (isFirst) {
+    S.firstScanDone = true;
+    S.rewards.push({amount:5, desc:'first scan bonus', date:new Date().toISOString()});
+  }
+  currentScanItems = [];
+  document.getElementById('scan-results').style.display = 'none';
+  document.getElementById('scan-btn').textContent = '📷 scan item';
+  save();
+  if (isFirst) {
+    showReward('first scan bonus!', 5, 'welcome to ScanVest!');
+  } else {
+    showToast('$'+total+' added to your portfolio 💰');
+    renderHome();
+  }
+}
+
+// ─── MARKET ───────────────────────────────────────────────────────────────────
+let currentFilter = 'all';
+let currentSearch = '';
+
+function renderMarket() {
+  document.getElementById('market-time').textContent = 'updated '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  document.getElementById('ai-insight').textContent = AI_INSIGHTS[Math.floor(Math.random()*AI_INSIGHTS.length)];
+  filterStocks(currentSearch);
+}
+
+function filterStocks(q) {
+  currentSearch = q;
+  const list = document.getElementById('stocks-list');
+  let filtered = STOCKS;
+  if (currentFilter !== 'all') filtered = filtered.filter(s => s.cat === currentFilter);
+  if (q) filtered = filtered.filter(s => s.t.toLowerCase().includes(q.toLowerCase()) || s.n.toLowerCase().includes(q.toLowerCase()));
+  list.innerHTML = filtered.map(s => {
+    const h = S.holdings.find(h => h.ticker === s.t);
+    return `<div class="card2" style="margin-bottom:8px;cursor:pointer" onclick="openStockModal('${s.t}')">
+      <div class="row">
+        <div class="row2">
+          <div class="stock-icon" style="background:${s.color};color:${s.tc}">${s.t[0]}</div>
+          <div>
+            <div style="font-weight:600;font-size:14px">${s.t}</div>
+            <div class="small">${s.n}${h?' · '+h.shares.toFixed(2)+' owned':''}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <svg width="60" height="24" style="display:block;margin-left:auto;margin-bottom:2px">${miniSparkline(s.hist,60,24,s.c>=0?'#22c55e':'#ef4444')}</svg>
+          <div style="font-weight:600;font-size:14px">$${s.p.toFixed(2)}</div>
+          <div class="${s.c>=0?'green':'red'}" style="font-size:12px">${s.c>=0?'+':''}${s.c.toFixed(1)}%</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function miniSparkline(data, w, h, color) {
+  const min = Math.min(...data), max = Math.max(...data), range = max-min||1;
+  const pts = data.map((v,i) => `${(i/(data.length-1)*w).toFixed(1)},${(h-((v-min)/range)*(h-4)-2).toFixed(1)}`).join(' ');
+  return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>`;
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('#market-filters .pill').forEach(b => {b.className='pill pill-outline'});
+  btn.className = 'pill pill-purple';
+  filterStocks(currentSearch);
+}
+
+function refreshMarket() {
+  STOCKS.forEach(s => { s.p = +(s.p * (1 + (Math.random()-.48)*0.008)).toFixed(2); s.c = +((s.c + (Math.random()-.5)*0.3)).toFixed(2); });
+  renderMarket();
+  showToast('prices updated ↻');
+}
+
+// ─── STOCK MODAL ──────────────────────────────────────────────────────────────
+let modalStock = null;
+function openStockModal(ticker) {
+  modalStock = STOCKS.find(s => s.t === ticker);
+  if (!modalStock) return;
+  const h = S.holdings.find(h => h.ticker === ticker);
+  document.getElementById('modal-icon').style.background = modalStock.color;
+  document.getElementById('modal-icon').style.color = modalStock.tc;
+  document.getElementById('modal-icon').textContent = modalStock.t[0];
+  document.getElementById('modal-ticker').textContent = modalStock.t;
+  document.getElementById('modal-name').textContent = modalStock.n;
+  document.getElementById('modal-price').textContent = '$'+modalStock.p.toFixed(2);
+  const cd = document.getElementById('modal-change');
+  cd.textContent = (modalStock.c>=0?'+':'')+modalStock.c.toFixed(2)+'%';
+  cd.className = modalStock.c>=0?'green':'red';
+  document.getElementById('modal-shares').textContent = h ? h.shares.toFixed(3) : '0';
+  document.getElementById('modal-value').textContent = h ? '$'+(h.shares*modalStock.p).toFixed(2) : '$0.00';
+  document.getElementById('trade-shares').value = '';
+  document.getElementById('trade-total').textContent = '$0.00';
+  document.getElementById('stock-modal').classList.add('show');
+  setTimeout(() => drawChart('modal-chart', modalStock.hist, modalStock.c>=0?'#22c55e':'#ef4444'), 50);
+}
+function closeModal() { document.getElementById('stock-modal').classList.remove('show'); }
+function updateTradeTotal() {
+  const shares = parseFloat(document.getElementById('trade-shares').value)||0;
+  document.getElementById('trade-total').textContent = '$'+(shares*modalStock.p).toFixed(2);
+}
+function executeTrade(type) {
+  const shares = parseFloat(document.getElementById('trade-shares').value);
+  if (!shares || shares <= 0) { showToast('enter a valid number of shares'); return; }
+  const total = shares * modalStock.p;
+  if (type === 'buy') {
+    if (total > S.balance) { showToast('not enough cash'); return; }
+    S.balance -= total;
+    const h = S.holdings.find(h => h.ticker === modalStock.t);
+    if (h) h.shares = +(h.shares + shares).toFixed(4);
+    else S.holdings.push({ticker:modalStock.t, shares, value:total});
+    S.transactions.push({type:'buy',ticker:modalStock.t,shares,price:modalStock.p,total,date:new Date().toISOString()});
+    showToast('bought '+shares.toFixed(2)+' shares of '+modalStock.t+' 📈');
+  } else {
+    const h = S.holdings.find(h => h.ticker === modalStock.t);
+    if (!h || h.shares < shares) { showToast('not enough shares'); return; }
+    h.shares = +(h.shares - shares).toFixed(4);
+    if (h.shares <= 0.0001) S.holdings = S.holdings.filter(x => x.ticker !== modalStock.t);
+    S.balance += total;
+    S.transactions.push({type:'sell',ticker:modalStock.t,shares,price:modalStock.p,total,date:new Date().toISOString()});
+    showToast('sold '+shares.toFixed(2)+' shares of '+modalStock.t+' 💵');
+  }
+  save(); closeModal(); renderHome();
+}
+
+// ─── LEARN ────────────────────────────────────────────────────────────────────
+function renderLearn() {
+  const streak = S.streak || 0;
+  document.getElementById('streak-pill').textContent = '🔥 '+streak+' days';
+  document.getElementById('streak-bar').style.width = Math.min(streak/7*100,100)+'%';
+  document.getElementById('streak-label').textContent = streak+' of 7 days — earn $3.00 at 7';
+  document.getElementById('lessons-list').innerHTML = LESSONS.map(l => {
+    const done = S.lessonsCompleted.includes(l.id);
+    return `<div class="card2" style="margin-bottom:8px;cursor:pointer${done?';opacity:.6':''}" onclick="${done?'':("openLesson('"+l.id+"')")}">
+      <div class="row">
+        <div class="row2">
+          <div style="width:36px;height:36px;background:var(--purple-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px">${done?'✅':'📖'}</div>
+          <div><div style="font-weight:600;font-size:14px">${l.title}</div><div class="small">${l.dur}</div></div>
+        </div>
+        <div class="pill pill-green">${done?'done':'+$'+l.reward.toFixed(2)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('quizzes-list').innerHTML = QUIZZES.map(q => {
+    const done = S.quizzesCompleted.includes(q.id);
+    return `<div class="card2" style="margin-bottom:8px;cursor:pointer${done?';opacity:.6':''}" onclick="${done?'':("openQuiz('"+q.id+"')")}">
+      <div class="row">
+        <div class="row2">
+          <div style="width:36px;height:36px;background:#1a1500;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px">${done?'✅':'🧠'}</div>
+          <div><div style="font-weight:600;font-size:14px">${q.title}</div><div class="small">${q.questions.length} questions</div></div>
+        </div>
+        <div class="pill pill-gold">${done?'done':'+$'+q.reward.toFixed(2)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openLesson(id) {
+  const lesson = LESSONS.find(l => l.id === id);
+  document.getElementById('lesson-content').innerHTML = `
+    <div style="margin-bottom:16px"><div style="font-size:20px;font-weight:700;margin-bottom:8px">${lesson.title}</div>
+    <div class="pill pill-green" style="display:inline-flex">earn +$${lesson.reward.toFixed(2)}</div></div>
+    <div style="font-size:15px;line-height:1.8;color:var(--muted);white-space:pre-line;margin-bottom:20px">${lesson.body}</div>
+    <button class="btn btn-primary" onclick="completeLesson('${id}')">complete & earn $${lesson.reward.toFixed(2)} 💰</button>
+    <button class="btn btn-secondary" style="margin-top:10px" onclick="closeLesson()">close</button>`;
+  document.getElementById('lesson-modal').style.display = 'flex';
+}
+function closeLesson() { document.getElementById('lesson-modal').style.display = 'none'; }
+function completeLesson(id) {
+  const l = LESSONS.find(x => x.id === id);
+  S.lessonsCompleted.push(id);
+  save(); closeLesson(); renderLearn();
+  showReward('lesson complete!', l.reward, '"'+l.title+'"');
+}
+
+let currentQuiz = null, currentQ = 0, quizScore = 0;
+function openQuiz(id) {
+  currentQuiz = QUIZZES.find(q => q.id === id);
+  currentQ = 0; quizScore = 0;
+  renderQuestion();
+  document.getElementById('lesson-modal').style.display = 'flex';
+}
+function renderQuestion() {
+  const q = currentQuiz.questions[currentQ];
+  document.getElementById('lesson-content').innerHTML = `
+    <div class="row" style="margin-bottom:16px">
+      <div style="font-size:17px;font-weight:700">${currentQuiz.title}</div>
+      <div class="small">${currentQ+1}/${currentQuiz.questions.length}</div>
+    </div>
+    <div class="prog-bg" style="margin-bottom:16px"><div class="prog-fill" style="width:${(currentQ/currentQuiz.questions.length)*100}%"></div></div>
+    <div style="font-size:15px;font-weight:600;margin-bottom:16px;line-height:1.5">${q.q}</div>
+    ${q.opts.map((opt,i) => `<button onclick="answerQ(${i})" style="width:100%;background:var(--card2);border:0.5px solid var(--border);border-radius:12px;padding:13px;color:var(--text);font-size:14px;text-align:left;margin-bottom:8px;cursor:pointer;font-family:inherit">${opt}</button>`).join('')}
+    <button class="btn btn-secondary" style="margin-top:4px" onclick="closeLesson()">quit</button>`;
+}
+function answerQ(i) {
+  const q = currentQuiz.questions[currentQ];
+  if (i === q.a) quizScore++;
+  currentQ++;
+  if (currentQ < currentQuiz.questions.length) { renderQuestion(); return; }
+  const passed = quizScore >= Math.ceil(currentQuiz.questions.length * 0.8);
+  document.getElementById('lesson-content').innerHTML = `
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:48px">${passed?'🏆':'💪'}</div>
+      <div style="font-size:22px;font-weight:700;margin:12px 0">${quizScore}/${currentQuiz.questions.length}</div>
+      <div style="color:var(--muted);margin-bottom:20px">${passed?'You passed! Reward earned.':'Need 80% to earn reward. Try again!'}</div>
+      ${passed ? `<button class="btn btn-primary" onclick="completeQuiz('${currentQuiz.id}')">claim $${currentQuiz.reward.toFixed(2)} 💰</button>` : `<button class="btn btn-primary" onclick="openQuiz('${currentQuiz.id}')">try again</button>`}
+      <button class="btn btn-secondary" style="margin-top:10px" onclick="closeLesson()">close</button>
+    </div>`;
+}
+function completeQuiz(id) {
+  const q = QUIZZES.find(x => x.id === id);
+  S.quizzesCompleted.push(id);
+  save(); closeLesson(); renderLearn();
+  showReward('quiz passed!', q.reward, '"'+q.title+'"');
+}
+
+function askCoach() {
+  const tips = [
+    "Why did my stock drop? Stock prices drop when bad news comes out, earnings miss expectations, or the whole market sells off. Check the news for your stock.",
+    "What's the best stock to buy? The best beginner move is an ETF like SPY — instant diversification across 500 companies with one purchase.",
+    "How do I make money investing? Buy assets that grow over time. The S&P 500 has returned ~10% per year on average. Time in the market beats timing the market.",
+    "What is a dividend? Some companies pay you cash just for holding their stock. It's called a dividend. Coca-Cola and McDonald's are famous dividend stocks.",
+    "When should I sell? Sell when your reason for buying no longer applies, or when you need the money. Never sell just because the price dropped short-term.",
+  ];
+  document.getElementById('coach-text').textContent = tips[Math.floor(Math.random()*tips.length)];
+  showToast('AI coach updated 🤖');
+}
+
+// ─── SOCIAL ───────────────────────────────────────────────────────────────────
+const LEADERBOARD = [
+  {name:'jordantrader',val:1842.5,chg:5.2,you:false},
+  {name:'stockkween',val:1620.0,chg:3.8,you:false},
+  {name:'cryptokid99',val:1180.0,chg:-1.4,you:false},
+  {name:'investorguy',val:975.5,chg:0.9,you:false},
+  {name:'stonksonly',val:820.0,chg:2.2,you:false},
+];
+
+function renderSocial() {
+  const myVal = totalValue();
+  const lb = [...LEADERBOARD, {name:S.profile?.name||'you',val:myVal,chg:1.2,you:true}]
+    .sort((a,b)=>b.val-a.val);
+  document.getElementById('leaderboard-list').innerHTML = lb.map((p,i) => `
+    <div class="${p.you?'card":"card2'}" style="margin-bottom:8px;${p.you?'border:0.5px solid var(--purple)':''}${i===0?'background:#1a1500;border:0.5px solid #854F0B':''}">
+      <div class="row2">
+        <div style="font-size:${i<3?16:13}px;font-weight:700;color:${i===0?'var(--amber)':i===1?'#B4B2A9':i===2?'#CD7F32':'var(--hint)');min-width:20px">${i+1}</div>
+        <div class="avatar" style="${p.you?'background:var(--purple-light);color:#AFA9EC':''}${i===0?'background:#2a2010;color:var(--amber)':''}">${(p.name[0]||'?').toUpperCase()}</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:14px">${p.you?'you ('+p.name+')':p.name}</div><div class="small">$${p.val.toFixed(0)}</div></div>
+        <div class="${p.chg>=0?'green':'red'}" style="font-size:13px;font-weight:600">${p.chg>=0?'+':''}${p.chg.toFixed(1)}%</div>
+      </div>
+    </div>`).join('');
+  const challenges = [
+    {title:'beat the S&P 500',desc:'outperform this week',reward:10,prog:68,color:'green'},
+    {title:'hold 5 different stocks',desc:`${Math.min(S.holdings.length,5)} of 5 done`,reward:5,prog:Math.min(S.holdings.length/5*100,100),color:'purple'},
+    {title:'7-day login streak',desc:`${S.streak||0} of 7 days`,reward:3,prog:Math.min((S.streak||0)/7*100,100),color:'gold'},
+    {title:'complete 3 lessons',desc:`${S.lessonsCompleted.length} of 3 done`,reward:5,prog:Math.min(S.lessonsCompleted.length/3*100,100),color:'green'},
+  ];
+  document.getElementById('challenges-list').innerHTML = challenges.map(c => `
+    <div class="card2" style="margin-bottom:8px">
+      <div class="row" style="margin-bottom:8px">
+        <div><div style="font-weight:600;font-size:14px">${c.title}</div><div class="small">${c.desc}</div></div>
+        <div class="pill pill-${c.color==='gold'?'gold':'green'}">+$${c.reward}</div>
+      </div>
+      <div class="prog-bg"><div class="prog-fill${c.color==='green'?'-green':''}" style="width:${c.prog}%;background:${c.color==='gold'?'var(--amber)':c.color==='green'?'var(--green)':'var(--purple)'}"></div></div>
+    </div>`).join('');
+}
+
+function setLBFilter(f, btn) {
+  document.querySelectorAll('#screen-social .filter-row .pill').forEach(b => b.className='pill pill-outline');
+  btn.className = 'pill pill-purple';
+  renderSocial();
+}
+
+function share() {
+  if (navigator.share) {
+    navigator.share({title:'ScanVest',text:'Scan your stuff, invest virtually, learn for real!',url:window.location.href});
+  } else {
+    navigator.clipboard?.writeText(window.location.href);
+    showToast('link copied! share with friends 🔗');
+  }
+}
+
+// ─── PROFILE ──────────────────────────────────────────────────────────────────
+function renderProfile() {
+  const name = S.profile?.name || 'Investor';
+  const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('profile-avatar').textContent = initials;
+  document.getElementById('profile-name').textContent = name;
+  document.getElementById('profile-school').textContent = S.profile?.school || 'investor';
+  const tr = totalRewards();
+  document.getElementById('profile-rewards-pill').textContent = '$'+tr.toFixed(2)+' earned';
+  document.getElementById('profile-streak-pill').textContent = (S.streak||0)+'-day streak 🔥';
+  document.getElementById('stat-scanned').textContent = '$'+S.scannedValue.toFixed(0);
+  document.getElementById('stat-rewards').textContent = '$'+tr.toFixed(2);
+  document.getElementById('stat-portfolio').textContent = '$'+totalValue().toFixed(0);
+  document.getElementById('stat-lessons').textContent = S.lessonsCompleted.length + S.quizzesCompleted.length;
+  const history = [...S.rewards].reverse().slice(0,8);
+  document.getElementById('reward-history').innerHTML = history.length ? history.map(r => `
+    <div class="card2" style="margin-bottom:8px">
+      <div class="row"><span style="font-size:14px">${r.desc}</span><span class="green" style="font-weight:600">+$${r.amount.toFixed(2)}</span></div>
+      <div class="small">${new Date(r.date).toLocaleDateString()}</div>
+    </div>`).join('') : '<div class="card2" style="text-align:center;padding:16px;color:var(--muted)">complete lessons and quizzes to earn rewards</div>';
+  const days = S.days || 0;
+  document.getElementById('grad-bar').style.width = Math.min(days/90*100,100)+'%';
+  document.getElementById('grad-label').textContent = 'day '+days+' of 90';
+  document.getElementById('home-greeting').textContent = 'hey, '+name+' 👋';
+}
+
+function resetApp() {
+  if (confirm('reset all data?')) { localStorage.removeItem('sv'); location.reload(); }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function renderAll() { renderHome(); renderMarket(); renderLearn(); renderSocial(); renderProfile(); }
+
+function checkStreak() {
+  const today = new Date().toDateString();
+  if (S.lastLogin === today) return;
+  const yesterday = new Date(Date.now()-86400000).toDateString();
+  S.streak = S.lastLogin === yesterday ? (S.streak||0)+1 : 1;
+  S.lastLogin = today;
+  S.days = (S.days||0)+1;
+  if (S.streak === 7) {
+    setTimeout(() => showReward('7-day streak!', 3, 'you logged in 7 days in a row'), 1000);
+    S.streak = 0;
+  }
+  save();
+}
+
+load();
+if (S.profile) {
+  document.getElementById('onboarding').classList.add('hidden');
+  checkStreak();
+  renderAll();
+} else {
+  document.getElementById('onboarding').classList.remove('hidden');
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
